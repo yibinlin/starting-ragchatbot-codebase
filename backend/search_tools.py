@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, Protocol
+from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
 from vector_store import VectorStore, SearchResults
 
@@ -93,6 +93,7 @@ class CourseSearchTool(Tool):
         for doc, meta in zip(results.documents, results.metadata):
             course_title = meta.get('course_title', 'unknown')
             lesson_num = meta.get('lesson_number')
+            lesson_link = meta.get('lesson_link')
             
             # Build context header
             header = f"[{course_title}"
@@ -100,11 +101,18 @@ class CourseSearchTool(Tool):
                 header += f" - Lesson {lesson_num}"
             header += "]"
             
-            # Track source for the UI
+            # Track source for the UI with clickable link if available
             source = course_title
             if lesson_num is not None:
                 source += f" - Lesson {lesson_num}"
-            sources.append(source)
+            
+            # Make source clickable if lesson link is available
+            if lesson_link:
+                source_html = f'<a href="{lesson_link}" target="_blank">{source}</a>'
+            else:
+                source_html = source
+                
+            sources.append(source_html)
             
             formatted.append(f"{header}\n{doc}")
         
